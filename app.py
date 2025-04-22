@@ -10,16 +10,25 @@ from main import (
 import pandas as pd
 import plotly.graph_objs as go
 import numpy as np
+import os
+import importlib.util
 
 # --- Streamlit Multi-Page Navigation ---
-pages = [
-    "How to Use",
-    "Indicators Explained",
-    "Stonk Battle Royale (Analyzer)",
-    "Large Cap Crypto Stonks",
-    "Meme Coin Feed",
-]
+PAGES_DIR = os.path.join(os.path.dirname(__file__), "pages")
+if os.path.isdir(PAGES_DIR):
+    page_files = [f for f in os.listdir(PAGES_DIR) if f.endswith(".py") and not f.startswith("__")]
+    page_names = [os.path.splitext(f)[0] for f in page_files]
+    pages = ["How to Use", "Indicators Explained", "Stonk Battle Royale (Analyzer)", "Large Cap Crypto Stonks", "Meme Coin Feed"] + page_names
+else:
+    pages = ["How to Use", "Indicators Explained", "Stonk Battle Royale (Analyzer)", "Large Cap Crypto Stonks", "Meme Coin Feed"]
 page = st.sidebar.radio("Navigation", pages)
+
+if page in page_names:
+    # Dynamically import and run the selected module
+    spec = importlib.util.spec_from_file_location(page, os.path.join(PAGES_DIR, f"{page}.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    st.stop()
 
 if page == "How to Use":
     st.title("How to Use the Meme Coin & Stonk Analyzer ")
@@ -76,10 +85,9 @@ elif page == "Indicators Explained":
     st.markdown("Oscillator (0-100) showing overbought (>70) or oversold (<30) conditions.")
     st.line_chart(calc_rsi(demo_series, window=14))
     st.header("MACD")
-    st.markdown("Trend-following momentum indicator. MACD = EMA(12) - EMA(26). Signal = EMA(9) of MACD.")
+    st.markdown("Moving Average Convergence Divergence: trend-following momentum indicator.")
     macd, signal = calc_macd(demo_series)
-    st.line_chart(macd)
-    st.line_chart(signal)
+    st.line_chart(pd.DataFrame({'MACD': macd, 'Signal': signal}))
     st.header("Bollinger Bands")
     st.markdown("Bands at SMA ± 2 std dev. Shows price volatility and extremes.")
     sma, upper, lower = calc_bollinger(demo_series, window=14)
@@ -101,6 +109,27 @@ elif page == "Indicators Explained":
     st.markdown("**Price/ATH:** Price divided by all-time-high. Shows room to moon.")
     st.markdown("**Price/Volume:** Price divided by trading volume. Shows liquidity.")
     st.info("All indicators are for informational purposes only. Not financial advice!")
+
+    # New indicators
+    st.header("Stochastic Oscillator")
+    st.markdown("Momentum indicator comparing a particular closing price to a range of its prices over a certain period. Useful for identifying overbought/oversold conditions.")
+    st.line_chart(calc_stochastic_oscillator(demo_series, window=14))
+
+    st.header("Williams %R")
+    st.markdown("A momentum indicator measuring overbought and oversold levels, similar to the Stochastic Oscillator but on a negative scale (0 to -100).")
+    st.line_chart(calc_williams_r(demo_series, window=14))
+
+    st.header("On-Balance Volume (OBV)")
+    st.markdown("A cumulative indicator that uses volume flow to predict changes in stock price. Useful for confirming trends.")
+    st.line_chart(calc_obv(demo_series, pd.Series(np.random.randint(1000, 2000, len(demo_series)), index=demo_series.index)))
+
+    st.header("Commodity Channel Index (CCI)")
+    st.markdown("A versatile indicator that can be used to identify a new trend or warn of extreme conditions. Measures the deviation of the price from its average.")
+    st.line_chart(calc_cci(demo_series, window=20))
+
+    st.header("Average Directional Index (ADX)")
+    st.markdown("A trend strength indicator. ADX values above 20 indicate a strong trend, while values below 20 indicate a weak trend or sideways movement.")
+    st.line_chart(calc_adx(demo_series, demo_series, demo_series, window=14))
 
 elif page == "Stonk Battle Royale (Analyzer)":
     # --- Customizable Comparison Section ---
