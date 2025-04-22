@@ -477,6 +477,22 @@ def black_scholes_price(S, K, T, r, sigma, option_type="call"):
     else:
         return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
 
+# --- Black-Scholes Greeks ---
+def black_scholes_greeks(S, K, T, r, sigma, option_type="call"):
+    from scipy.stats import norm
+    import numpy as np
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    Nd1 = norm.cdf(d1) if option_type == "call" else -norm.cdf(-d1)
+    Nd2 = norm.cdf(d2) if option_type == "call" else -norm.cdf(-d2)
+    pdf_d1 = norm.pdf(d1)
+    delta = Nd1
+    gamma = pdf_d1 / (S * sigma * np.sqrt(T))
+    vega = S * pdf_d1 * np.sqrt(T) / 100
+    theta = (-S * pdf_d1 * sigma / (2 * np.sqrt(T)) - r * K * np.exp(-r * T) * Nd2) / 365 if option_type == "call" else (-S * pdf_d1 * sigma / (2 * np.sqrt(T)) + r * K * np.exp(-r * T) * Nd2) / 365
+    rho = K * T * np.exp(-r * T) * Nd2 / 100 if option_type == "call" else -K * T * np.exp(-r * T) * Nd2 / 100
+    return {"delta": delta, "gamma": gamma, "vega": vega, "theta": theta, "rho": rho}
+
 # --- Binomial Tree Option Pricing (simple version) ---
 def binomial_tree_price(S, K, T, r, sigma, steps=50, option_type="call"):
     dt = T / steps

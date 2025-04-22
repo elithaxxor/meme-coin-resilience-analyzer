@@ -28,7 +28,14 @@ with mobile_container():
     data = fetch_top_volume_meme_coins()
     if data:
         df = pd.DataFrame(data)
-        st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]])
-        st.line_chart(df.set_index("name")["total_volume"])
+        st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]], use_container_width=True, hide_index=True)
+        st.line_chart(df.set_index("name")["total_volume"], use_container_width=True)
+        st.caption("Tip: Tap column headers to sort. Scroll horizontally for more data. Charts are interactive on mobile and desktop.")
+        st.markdown("""
+        <style>
+        .stDataFrame th, .stDataFrame td { font-size: 1.1em; padding: 0.5em; }
+        .stCaption { color: #6c757d; font-size: 0.95em; }
+        </style>
+        """, unsafe_allow_html=True)
     else:
         st.warning("No data found or API limit reached.")
