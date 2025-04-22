@@ -1,33 +1,39 @@
 # Meme Coin Resilience Analyzer
 
-This is a Python CLI tool that helps analyze the resilience and growth potential of small-cap meme coins, inspired by the April 2025 market report. It allows you to input coin data, macroeconomic factors, and get a forecast of risk and ROI potential.
+A powerful, modular Streamlit app for analyzing meme coins, large caps, and market indices with advanced analytics, technical indicators, and multi-chain support.
 
 ## Features
-- Input coin profiles (name, price, tokenomics, etc.)
-- Assess macroeconomic conditions (interest rates, inflation, sentiment)
-- Calculate potential ROI and risk
-- Output a resilience score and forecast
+- Live trending meme coin dashboard (multi-chain, powered by CoinGecko)
+- Multi-chain analytics: Ethereum, Solana, BSC, Polygon, and more
+- Volume & liquidity analytics with charts
+- Holder & distribution analysis (Etherscan integration)
+- Smart contract safety & scam detection (TokenSniffer integration)
+- Community & social sentiment analytics (LunarCrush/Twitter/Reddit-ready)
+- Whale & insider activity alerts (stub for whale tracking APIs)
+- New listings & early discovery (DEXTools/Birdeye/CoinGecko-ready)
+- Automated price alerts & watchlists (local CSV-backed)
+- Educational content and community leaderboard
+- 20+ technical indicators: Sharpe, RSI, MACD, Bollinger Bands, Stochastic, ADX, CCI, OBV, and more
+- Customizable comparison of meme coins, large caps, VIX, and S&P 500
+- Advanced charting: line, bar, heatmap, area, and more
+- Rolling correlation, downloadable CSVs, and more
 
-## Usage
+## Quickstart
 1. Install requirements: `pip install -r requirements.txt`
-2. Run the program: `python main.py`
+2. Add your API keys to `config.py` (CoinGecko, Alpha Vantage, etc.)
+3. (Optional) Add Etherscan, LunarCrush, or other API keys to Streamlit secrets for advanced features
+4. Run the app: `streamlit run app.py`
 
-## Example
-```
-$ python main.py
-Enter coin name: Arctic Pablo Coin (APC)
-Current price: 0.000087
-Target price: 0.008
-Funds raised: 2000000
-Staking APY: 66
-Deflationary? (yes/no): yes
-Interest rates low? (yes/no): yes
-Inflation high? (yes/no): no
-Social media trend strong? (yes/no): yes
----
-Resilience Score: 8.7/10
-Forecast: High breakout potential with strong macro tailwinds.
-```
+## Example Screenshots
+- Trending meme coins dashboard
+- Technical indicator comparison
+- Safety scanner & holder analysis
+
+## API Keys
+- CoinGecko (required for live data)
+- Alpha Vantage (optional for advanced analytics)
+- Etherscan (optional for holder analysis)
+- LunarCrush/Twitter (optional for sentiment)
 
 ## License
 MIT

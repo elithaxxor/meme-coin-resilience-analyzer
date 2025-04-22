@@ -1,3 +1,4 @@
 import streamlit as st
 st.title("New Listings & Early Discovery")
-st.info("This page will highlight newly listed meme coins on DEXs and CEXs. (Feature in progress)")
+st.write("New meme coin listing alerts coming soon! (Integrate DEXTools, Birdeye, or CoinGecko new listings APIs)")
+st.info("This module will aggregate and alert on newly listed meme coins across multiple chains.")
