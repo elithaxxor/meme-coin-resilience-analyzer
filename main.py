@@ -7,6 +7,7 @@ import argparse
 import yfinance as yf
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
 
 console = Console()
 
@@ -462,7 +463,52 @@ def calc_adx(high, low, close, window=14):
     adx = dx.rolling(window=window).mean()
     return adx
 
-# Custom ratios
+# --- Derivatives & Futures Analytics ---
+# (Imports for new indicators and models)
+from scipy.stats import norm
+import numpy as np
+
+# --- Black-Scholes Option Pricing ---
+def black_scholes_price(S, K, T, r, sigma, option_type="call"):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    if option_type == "call":
+        return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    else:
+        return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+
+# --- Binomial Tree Option Pricing (simple version) ---
+def binomial_tree_price(S, K, T, r, sigma, steps=50, option_type="call"):
+    dt = T / steps
+    u = np.exp(sigma * np.sqrt(dt))
+    d = 1 / u
+    p = (np.exp(r * dt) - d) / (u - d)
+    disc = np.exp(-r * dt)
+    prices = np.zeros(steps + 1)
+    prices[0] = S * d ** steps
+    for i in range(1, steps + 1):
+        prices[i] = prices[i - 1] * u / d
+    values = np.maximum(0, (prices - K) if option_type == "call" else (K - prices))
+    for i in range(steps - 1, -1, -1):
+        values[:-1] = disc * (p * values[1:] + (1 - p) * values[:-1])
+    return values[0]
+
+# --- Kelly Criterion ---
+def kelly_criterion(win_prob, win_loss_ratio):
+    return max(0, win_prob - (1 - win_prob) / win_loss_ratio)
+
+# --- Monte Carlo Simulation for Option Pricing ---
+def monte_carlo_option_price(S, K, T, r, sigma, n_sim=10000, option_type="call"):
+    np.random.seed(42)
+    ST = S * np.exp((r - 0.5 * sigma ** 2) * T + sigma * np.sqrt(T) * np.random.randn(n_sim))
+    if option_type == "call":
+        payoffs = np.maximum(ST - K, 0)
+    else:
+        payoffs = np.maximum(K - ST, 0)
+    return np.exp(-r * T) * np.mean(payoffs)
+
+# (Integrate these into analytics/backtesting/options modules as needed)
+
 def price_to_ath(series, ath):
     return series / ath
 

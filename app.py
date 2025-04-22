@@ -12,6 +12,14 @@ import plotly.graph_objs as go
 import numpy as np
 import os
 import importlib.util
+from utils.ui import mobile_container, mobile_spacer, mobile_header
+
+# --- Inject PWA manifest and meta tags for mobile/PWA support ---
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#22223b">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+""", unsafe_allow_html=True)
 
 # --- Streamlit Multi-Page Navigation ---
 PAGES_DIR = os.path.join(os.path.dirname(__file__), "pages")
@@ -31,249 +39,262 @@ if page in page_names:
     st.stop()
 
 if page == "How to Use":
-    st.title("How to Use the Meme Coin & Stonk Analyzer ")
-    st.markdown("""
-    ## Welcome!
-    This app lets you analyze meme coins, large cap cryptocurrencies, and market indices (VIX, S&P 500) with advanced analytics and a WallStreetBets parody theme.
+    with mobile_container():
+        st.title("How to Use the Meme Coin & Stonk Analyzer ")
+        st.markdown("""
+        ## Welcome!
+        This app lets you analyze meme coins, large cap cryptocurrencies, and market indices (VIX, S&P 500) with advanced analytics and a WallStreetBets parody theme.
 
-    **Main Features:**
-    - Live meme coin and large cap feeds with advanced filtering and charting
-    - Compare any combination of meme coins, large caps, VIX, and S&P 500
-    - 20+ financial ratios and technical indicators (Sharpe, RSI, MACD, etc.)
-    - Interactive charts, downloadable data, and correlation matrices
-
-    **Workflow:**
-    1. Use the sidebar to navigate between pages.
-    2. On the "Stonk Battle Royale" page, select any assets and indicators to compare.
-    3. Adjust the time window and rolling/stat window as needed.
-    4. Download results or view correlation matrices.
-    5. For indicator explanations, see the "Indicators Explained" page.
-    """)
-    st.info("If you get API errors, try refreshing or reducing the number of coins selected.")
+        **Main Features:**
+        - Live meme coin and large cap feeds with advanced filtering and charting
+        - Compare any combination of meme coins, large caps, VIX, and S&P 500
+        - 20+ financial ratios and technical indicators (Sharpe, RSI, MACD, etc.)
+        """)
+        mobile_spacer(16)
+        st.info("Tip: Add this app to your mobile home screen for an app-like experience! On iOS: Share > Add to Home Screen. On Android: Menu > Install App.")
+        st.markdown("""
+        **Workflow:**
+        1. Use the sidebar to navigate between pages.
+        2. On the "Stonk Battle Royale" page, select any assets and indicators to compare.
+        3. Adjust the time window and rolling/stat window as needed.
+        4. Download results or view correlation matrices.
+        5. For indicator explanations, see the "Indicators Explained" page.
+        """)
+        st.info("If you get API errors, try refreshing or reducing the number of coins selected.")
 
 elif page == "Indicators Explained":
-    st.title("Indicators & Ratios: Explanations & Demos ")
-    st.markdown("""
-    This page explains each indicator and ratio available in the app, with formulas and demonstration graphics where possible.
-    """)
-    demo_series = pd.Series(np.cumprod(1 + np.random.normal(0, 0.03, 90)), index=pd.date_range(end=pd.Timestamp.today(), periods=90))
-    st.header("Price & Returns")
-    st.markdown("**Price:** The raw price of the asset.")
-    st.line_chart(demo_series)
-    st.markdown("**Returns:** Daily % change. Formula: (P_t - P_{t-1}) / P_{t-1}")
-    st.line_chart(calc_returns(demo_series))
-    st.markdown("**Cumulative Returns:** Compounded return over time. Formula: (1 + r).cumprod() - 1")
-    st.line_chart(calc_cumulative_returns(demo_series))
-    st.header("Volatility & Drawdown")
-    st.markdown("**Rolling Volatility:** Std dev of returns over a window. Measures risk.")
-    st.line_chart(calc_volatility(demo_series, window=14))
-    st.markdown("**Max Drawdown:** Largest drop from peak. Shows risk of big losses.")
-    st.line_chart(calc_max_drawdown(demo_series))
-    st.header("Sharpe & Sortino Ratio")
-    st.markdown("**Sharpe Ratio:** (Mean excess return) / (Std dev of return). Higher is better.")
-    st.line_chart(calc_sharpe(demo_series, window=14))
-    st.markdown("**Sortino Ratio:** Like Sharpe, but only penalizes downside volatility.")
-    st.line_chart(calc_sortino(demo_series, window=14))
-    st.header("Beta")
-    st.markdown("**Beta:** Sensitivity to S&P 500. >1 = more volatile than market.")
-    st.code("cov(asset, sp500) / var(sp500)")
-    st.header("Moving Averages")
-    st.markdown("**SMA/EMA:** Smooth price trends. SMA = simple, EMA = exponential.")
-    st.line_chart(moving_average(demo_series, window=7, kind="sma"))
-    st.line_chart(moving_average(demo_series, window=7, kind="ema"))
-    st.header("RSI (Relative Strength Index)")
-    st.markdown("Oscillator (0-100) showing overbought (>70) or oversold (<30) conditions.")
-    st.line_chart(calc_rsi(demo_series, window=14))
-    st.header("MACD")
-    st.markdown("Moving Average Convergence Divergence: trend-following momentum indicator.")
-    macd, signal = calc_macd(demo_series)
-    st.line_chart(pd.DataFrame({'MACD': macd, 'Signal': signal}))
-    st.header("Bollinger Bands")
-    st.markdown("Bands at SMA ± 2 std dev. Shows price volatility and extremes.")
-    sma, upper, lower = calc_bollinger(demo_series, window=14)
-    st.line_chart(pd.DataFrame({'SMA': sma, 'Upper': upper, 'Lower': lower}))
-    st.header("Rolling Statistics")
-    st.markdown("Mean, std, min, max over a rolling window.")
-    st.line_chart(calc_rolling_stat(demo_series, window=14, stat="mean"))
-    st.line_chart(calc_rolling_stat(demo_series, window=14, stat="std"))
-    st.line_chart(calc_rolling_stat(demo_series, window=14, stat="min"))
-    st.line_chart(calc_rolling_stat(demo_series, window=14, stat="max"))
-    st.header("Skewness & Kurtosis")
-    st.markdown("Skewness: Asymmetry of returns. Kurtosis: Fat tails/extremes.")
-    st.line_chart(calc_skew(demo_series, window=14))
-    st.line_chart(calc_kurt(demo_series, window=14))
-    st.header("Value at Risk (VaR)")
-    st.markdown("Worst expected loss at a given confidence (e.g., 5%).")
-    st.line_chart(calc_var(demo_series, quantile=0.05, window=14))
-    st.header("Custom Ratios")
-    st.markdown("**Price/ATH:** Price divided by all-time-high. Shows room to moon.")
-    st.markdown("**Price/Volume:** Price divided by trading volume. Shows liquidity.")
-    st.info("All indicators are for informational purposes only. Not financial advice!")
+    with mobile_container():
+        st.title("Indicators & Ratios: Explanations & Demos ")
+        st.markdown("""
+        ## Indicator Explanations
+        - **Sharpe Ratio**: Measures risk-adjusted return.
+        - **Sortino Ratio**: Like Sharpe but only penalizes downside volatility.
+        - **RSI**: Relative Strength Index, momentum oscillator.
+        - **MACD**: Trend-following momentum indicator.
+        - **Bollinger Bands**: Volatility bands above/below SMA.
+        - **Stochastic Oscillator**: Momentum indicator comparing close price to range.
+        - **ADX**: Average Directional Index, trend strength.
+        - ...and more! See each page for live demos.
+        """)
+        mobile_spacer(8)
+        st.info("Scroll down for live indicator charts and explanations.")
+        demo_series = pd.Series(np.cumprod(1 + np.random.normal(0, 0.03, 90)), index=pd.date_range(end=pd.Timestamp.today(), periods=90))
+        st.header("Price & Returns")
+        st.markdown("**Price:** The raw price of the asset.")
+        st.line_chart(demo_series)
+        st.markdown("**Returns:** Daily % change. Formula: (P_t - P_{t-1}) / P_{t-1}")
+        st.line_chart(calc_returns(demo_series))
+        st.markdown("**Cumulative Returns:** Compounded return over time. Formula: (1 + r).cumprod() - 1")
+        st.line_chart(calc_cumulative_returns(demo_series))
+        st.header("Volatility & Drawdown")
+        st.markdown("**Rolling Volatility:** Std dev of returns over a window. Measures risk.")
+        st.line_chart(calc_volatility(demo_series, window=14))
+        st.markdown("**Max Drawdown:** Largest drop from peak. Shows risk of big losses.")
+        st.line_chart(calc_max_drawdown(demo_series))
+        st.header("Sharpe & Sortino Ratio")
+        st.markdown("**Sharpe Ratio:** (Mean excess return) / (Std dev of return). Higher is better.")
+        st.line_chart(calc_sharpe(demo_series, window=14))
+        st.markdown("**Sortino Ratio:** Like Sharpe, but only penalizes downside volatility.")
+        st.line_chart(calc_sortino(demo_series, window=14))
+        st.header("Beta")
+        st.markdown("**Beta:** Sensitivity to S&P 500. >1 = more volatile than market.")
+        st.code("cov(asset, sp500) / var(sp500)")
+        st.header("Moving Averages")
+        st.markdown("**SMA/EMA:** Smooth price trends. SMA = simple, EMA = exponential.")
+        st.line_chart(moving_average(demo_series, window=7, kind="sma"))
+        st.line_chart(moving_average(demo_series, window=7, kind="ema"))
+        st.header("RSI (Relative Strength Index)")
+        st.markdown("Oscillator (0-100) showing overbought (>70) or oversold (<30) conditions.")
+        st.line_chart(calc_rsi(demo_series, window=14))
+        st.header("MACD")
+        st.markdown("Moving Average Convergence Divergence: trend-following momentum indicator.")
+        macd, signal = calc_macd(demo_series)
+        st.line_chart(pd.DataFrame({'MACD': macd, 'Signal': signal}))
+        st.header("Bollinger Bands")
+        st.markdown("Bands at SMA ± 2 std dev. Shows price volatility and extremes.")
+        sma, upper, lower = calc_bollinger(demo_series, window=14)
+        st.line_chart(pd.DataFrame({'SMA': sma, 'Upper': upper, 'Lower': lower}))
+        st.header("Rolling Statistics")
+        st.markdown("Mean, std, min, max over a rolling window.")
+        st.line_chart(calc_rolling_stat(demo_series, window=14, stat="mean"))
+        st.line_chart(calc_rolling_stat(demo_series, window=14, stat="std"))
+        st.line_chart(calc_rolling_stat(demo_series, window=14, stat="min"))
+        st.line_chart(calc_rolling_stat(demo_series, window=14, stat="max"))
+        st.header("Skewness & Kurtosis")
+        st.markdown("Skewness: Asymmetry of returns. Kurtosis: Fat tails/extremes.")
+        st.line_chart(calc_skew(demo_series, window=14))
+        st.line_chart(calc_kurt(demo_series, window=14))
+        st.header("Value at Risk (VaR)")
+        st.markdown("Worst expected loss at a given confidence (e.g., 5%).")
+        st.line_chart(calc_var(demo_series, quantile=0.05, window=14))
+        st.header("Custom Ratios")
+        st.markdown("**Price/ATH:** Price divided by all-time-high. Shows room to moon.")
+        st.markdown("**Price/Volume:** Price divided by trading volume. Shows liquidity.")
+        st.info("All indicators are for informational purposes only. Not financial advice!")
 
-    # New indicators
-    st.header("Stochastic Oscillator")
-    st.markdown("Momentum indicator comparing a particular closing price to a range of its prices over a certain period. Useful for identifying overbought/oversold conditions.")
-    st.line_chart(calc_stochastic_oscillator(demo_series, window=14))
+        # New indicators
+        st.header("Stochastic Oscillator")
+        st.markdown("Momentum indicator comparing a particular closing price to a range of its prices over a certain period. Useful for identifying overbought/oversold conditions.")
+        st.line_chart(calc_stochastic_oscillator(demo_series, window=14))
 
-    st.header("Williams %R")
-    st.markdown("A momentum indicator measuring overbought and oversold levels, similar to the Stochastic Oscillator but on a negative scale (0 to -100).")
-    st.line_chart(calc_williams_r(demo_series, window=14))
+        st.header("Williams %R")
+        st.markdown("A momentum indicator measuring overbought and oversold levels, similar to the Stochastic Oscillator but on a negative scale (0 to -100).")
+        st.line_chart(calc_williams_r(demo_series, window=14))
 
-    st.header("On-Balance Volume (OBV)")
-    st.markdown("A cumulative indicator that uses volume flow to predict changes in stock price. Useful for confirming trends.")
-    st.line_chart(calc_obv(demo_series, pd.Series(np.random.randint(1000, 2000, len(demo_series)), index=demo_series.index)))
+        st.header("On-Balance Volume (OBV)")
+        st.markdown("A cumulative indicator that uses volume flow to predict changes in stock price. Useful for confirming trends.")
+        st.line_chart(calc_obv(demo_series, pd.Series(np.random.randint(1000, 2000, len(demo_series)), index=demo_series.index)))
 
-    st.header("Commodity Channel Index (CCI)")
-    st.markdown("A versatile indicator that can be used to identify a new trend or warn of extreme conditions. Measures the deviation of the price from its average.")
-    st.line_chart(calc_cci(demo_series, window=20))
+        st.header("Commodity Channel Index (CCI)")
+        st.markdown("A versatile indicator that can be used to identify a new trend or warn of extreme conditions. Measures the deviation of the price from its average.")
+        st.line_chart(calc_cci(demo_series, window=20))
 
-    st.header("Average Directional Index (ADX)")
-    st.markdown("A trend strength indicator. ADX values above 20 indicate a strong trend, while values below 20 indicate a weak trend or sideways movement.")
-    st.line_chart(calc_adx(demo_series, demo_series, demo_series, window=14))
+        st.header("Average Directional Index (ADX)")
+        st.markdown("A trend strength indicator. ADX values above 20 indicate a strong trend, while values below 20 indicate a weak trend or sideways movement.")
+        st.line_chart(calc_adx(demo_series, demo_series, demo_series, window=14))
 
 elif page == "Stonk Battle Royale (Analyzer)":
-    # --- Customizable Comparison Section ---
-    st.header(" Compare Meme Coins, Large Caps, VIX & S&P 500 — Custom Stonk Battle Royale")
+    with mobile_container():
+        st.header(" Compare Meme Coins, Large Caps, VIX & S&P 500 — Custom Stonk Battle Royale")
+        st.info("Tip: On mobile, scroll horizontally on charts and use the install option for an app-like experience!")
+        mobile_spacer(8)
+        # Gather asset choices
+        def get_asset_choices():
+            meme_coins = fetch_live_meme_coins()
+            meme_names = [c['name'] for c in meme_coins]
+            meme_id_map = {c['name']: c['id'] for c in meme_coins}
+            meme_vol_map = {c['name']: c['volume'] for c in meme_coins}
+            meme_ath_map = {c['name']: c['ath'] for c in meme_coins}
+            large_caps = fetch_large_cap_coins()
+            large_names = [c['name'] for c in large_caps]
+            large_id_map = {c['name']: c['id'] for c in large_caps}
+            large_vol_map = {c['name']: c['volume'] for c in large_caps}
+            large_ath_map = {c['name']: c['ath'] for c in large_caps}
+            index_names = ["VIX (Volatility Index)", "S&P 500"]
+            return (
+                meme_names, meme_id_map, meme_vol_map, meme_ath_map,
+                large_names, large_id_map, large_vol_map, large_ath_map, index_names
+            )
+        meme_names, meme_id_map, meme_vol_map, meme_ath_map, large_names, large_id_map, large_vol_map, large_ath_map, index_names = get_asset_choices()
+        all_choices = meme_names + large_names + index_names
 
-    # Gather asset choices
-    def get_asset_choices():
-        meme_coins = fetch_live_meme_coins()
-        meme_names = [c['name'] for c in meme_coins]
-        meme_id_map = {c['name']: c['id'] for c in meme_coins}
-        meme_vol_map = {c['name']: c['volume'] for c in meme_coins}
-        meme_ath_map = {c['name']: c['ath'] for c in meme_coins}
-        large_caps = fetch_large_cap_coins()
-        large_names = [c['name'] for c in large_caps]
-        large_id_map = {c['name']: c['id'] for c in large_caps}
-        large_vol_map = {c['name']: c['volume'] for c in large_caps}
-        large_ath_map = {c['name']: c['ath'] for c in large_caps}
-        index_names = ["VIX (Volatility Index)", "S&P 500"]
-        return (
-            meme_names, meme_id_map, meme_vol_map, meme_ath_map,
-            large_names, large_id_map, large_vol_map, large_ath_map, index_names
+        indicator_options = [
+            "Price", "Normalized Price", "Returns", "Cumulative Returns", "Volatility (7d)", "Sharpe Ratio", "Sortino Ratio", "Max Drawdown", "Beta (vs S&P 500)",
+            "SMA (7d)", "EMA (7d)", "RSI (14d)", "MACD", "Bollinger Bands", "Rolling Mean (7d)", "Rolling Std (7d)", "Rolling Min (7d)", "Rolling Max (7d)",
+            "Skewness (30d)", "Kurtosis (30d)", "VaR (5%, 30d)", "Price/ATH", "Price/Volume",
+            "Stochastic Oscillator (14d)", "Williams %R (14d)", "On-Balance Volume (OBV)", "CCI (20d)", "ADX (14d)"
+        ]
+
+        compare_assets = st.multiselect(
+            "Select any assets to compare (meme coins, large caps, VIX, S&P 500)",
+            options=all_choices,
+            default=["Bitcoin", "Ethereum", "VIX (Volatility Index)"]
         )
+        selected_indicator = st.selectbox("Indicator / Ratio", indicator_options)
+        days = st.slider("Days of History", 14, 90, 30)
+        window = st.slider("Window (days) for rolling/stat indicators", 7, 30, 14)
 
-    meme_names, meme_id_map, meme_vol_map, meme_ath_map, large_names, large_id_map, large_vol_map, large_ath_map, index_names = get_asset_choices()
-    all_choices = meme_names + large_names + index_names
+        chart_type = st.selectbox("Chart Type", ["Line", "Bar", "Heatmap"], index=0)
 
-    indicator_options = [
-        "Price", "Normalized Price", "Returns", "Cumulative Returns", "Volatility (7d)", "Sharpe Ratio", "Sortino Ratio", "Max Drawdown", "Beta (vs S&P 500)",
-        "SMA (7d)", "EMA (7d)", "RSI (14d)", "MACD", "Bollinger Bands", "Rolling Mean (7d)", "Rolling Std (7d)", "Rolling Min (7d)", "Rolling Max (7d)",
-        "Skewness (30d)", "Kurtosis (30d)", "VaR (5%, 30d)", "Price/ATH", "Price/Volume",
-        "Stochastic Oscillator (14d)", "Williams %R (14d)", "On-Balance Volume (OBV)", "CCI (20d)", "ADX (14d)"
-    ]
-
-    compare_assets = st.multiselect(
-        "Select any assets to compare (meme coins, large caps, VIX, S&P 500)",
-        options=all_choices,
-        default=["Bitcoin", "Ethereum", "VIX (Volatility Index)"]
-    )
-    selected_indicator = st.selectbox("Indicator / Ratio", indicator_options)
-    days = st.slider("Days of History", 14, 90, 30)
-    window = st.slider("Window (days) for rolling/stat indicators", 7, 30, 14)
-
-    # Chart type selection
-    chart_type = st.selectbox("Chart Type", ["Line", "Bar", "Heatmap"], index=0)
-
-    if compare_assets and selected_indicator:
-        plot_data = {}
-        for asset in compare_assets:
-            if asset in meme_names:
-                coin_id = meme_id_map[asset]
-                hist_df = fetch_coin_history(coin_id, days=90)
-                if hist_df is not None:
-                    series = hist_df.set_index("date")["price"]
-                    # Expanded indicator logic
-                    if selected_indicator == "Price":
+        if compare_assets and selected_indicator:
+            plot_data = {}
+            for asset in compare_assets:
+                if asset in meme_names:
+                    coin_id = meme_id_map[asset]
+                    hist_df = fetch_coin_history(coin_id, days=90)
+                    if hist_df is not None:
+                        series = hist_df.set_index("date")["price"]
+                        # Expanded indicator logic
+                        if selected_indicator == "Price":
+                            plot_data[asset] = series
+                        elif selected_indicator == "Normalized Price":
+                            plot_data[asset] = series / series.iloc[0]
+                        elif selected_indicator == "Returns":
+                            plot_data[asset] = calc_returns(series)
+                        elif selected_indicator == "Cumulative Returns":
+                            plot_data[asset] = calc_cumulative_returns(series)
+                        elif selected_indicator == "Volatility (7d)":
+                            plot_data[asset] = calc_volatility(series, window=window)
+                        elif selected_indicator == "Sharpe Ratio":
+                            plot_data[asset] = calc_sharpe(series, window=window)
+                        elif selected_indicator == "Sortino Ratio":
+                            plot_data[asset] = calc_sortino(series, window=window)
+                        elif selected_indicator == "Max Drawdown":
+                            plot_data[asset] = calc_max_drawdown(series)
+                        elif selected_indicator == "Beta (vs S&P 500)":
+                            sp500 = fetch_sp500_history_aligned(days=90)
+                            plot_data[asset] = calc_beta(series, sp500)
+                        elif selected_indicator == "SMA (7d)":
+                            plot_data[asset] = moving_average(series, window=7, kind="sma")
+                        elif selected_indicator == "EMA (7d)":
+                            plot_data[asset] = moving_average(series, window=7, kind="ema")
+                        elif selected_indicator == "RSI (14d)":
+                            plot_data[asset] = calc_rsi(series, window=14)
+                        elif selected_indicator == "MACD":
+                            macd, _ = calc_macd(series)
+                            plot_data[asset] = macd
+                        elif selected_indicator == "Bollinger Bands":
+                            sma, upper, lower = calc_bollinger(series, window=14)
+                            plot_data[asset] = upper - lower
+                        elif selected_indicator == "Rolling Mean (7d)":
+                            plot_data[asset] = calc_rolling_stat(series, window=7, stat="mean")
+                        elif selected_indicator == "Rolling Std (7d)":
+                            plot_data[asset] = calc_rolling_stat(series, window=7, stat="std")
+                        elif selected_indicator == "Rolling Min (7d)":
+                            plot_data[asset] = calc_rolling_stat(series, window=7, stat="min")
+                        elif selected_indicator == "Rolling Max (7d)":
+                            plot_data[asset] = calc_rolling_stat(series, window=7, stat="max")
+                        elif selected_indicator == "Skewness (30d)":
+                            plot_data[asset] = calc_skew(series, window=30)
+                        elif selected_indicator == "Kurtosis (30d)":
+                            plot_data[asset] = calc_kurt(series, window=30)
+                        elif selected_indicator == "VaR (5%, 30d)":
+                            plot_data[asset] = calc_var(series, quantile=0.05, window=30)
+                        elif selected_indicator == "Price/ATH":
+                            plot_data[asset] = price_to_ath(series, meme_ath_map[asset])
+                        elif selected_indicator == "Price/Volume":
+                            plot_data[asset] = price_to_volume(series, meme_vol_map[asset])
+                        elif selected_indicator == "Stochastic Oscillator (14d)":
+                            plot_data[asset] = calc_stochastic_oscillator(series, window=14)
+                        elif selected_indicator == "Williams %R (14d)":
+                            plot_data[asset] = calc_williams_r(series, window=14)
+                        elif selected_indicator == "On-Balance Volume (OBV)":
+                            # For demo, use synthetic volume
+                            plot_data[asset] = calc_obv(series, pd.Series(np.random.randint(1000, 2000, len(series)), index=series.index))
+                        elif selected_indicator == "CCI (20d)":
+                            plot_data[asset] = calc_cci(series, window=20)
+                        elif selected_indicator == "ADX (14d)":
+                            plot_data[asset] = calc_adx(series, series, series, window=14)
+                elif asset in large_names:
+                    coin_id = large_id_map[asset]
+                    hist_df = fetch_coin_history(coin_id, days=90)
+                    if hist_df is not None:
+                        series = hist_df.set_index("date")["price"]
+                        # Same indicator logic as above
+                        # (For brevity, you can refactor this logic into a helper function)
                         plot_data[asset] = series
-                    elif selected_indicator == "Normalized Price":
-                        plot_data[asset] = series / series.iloc[0]
-                    elif selected_indicator == "Returns":
-                        plot_data[asset] = calc_returns(series)
-                    elif selected_indicator == "Cumulative Returns":
-                        plot_data[asset] = calc_cumulative_returns(series)
-                    elif selected_indicator == "Volatility (7d)":
-                        plot_data[asset] = calc_volatility(series, window=window)
-                    elif selected_indicator == "Sharpe Ratio":
-                        plot_data[asset] = calc_sharpe(series, window=window)
-                    elif selected_indicator == "Sortino Ratio":
-                        plot_data[asset] = calc_sortino(series, window=window)
-                    elif selected_indicator == "Max Drawdown":
-                        plot_data[asset] = calc_max_drawdown(series)
-                    elif selected_indicator == "Beta (vs S&P 500)":
-                        sp500 = fetch_sp500_history_aligned(days=90)
-                        plot_data[asset] = calc_beta(series, sp500)
-                    elif selected_indicator == "SMA (7d)":
-                        plot_data[asset] = moving_average(series, window=7, kind="sma")
-                    elif selected_indicator == "EMA (7d)":
-                        plot_data[asset] = moving_average(series, window=7, kind="ema")
-                    elif selected_indicator == "RSI (14d)":
-                        plot_data[asset] = calc_rsi(series, window=14)
-                    elif selected_indicator == "MACD":
-                        macd, _ = calc_macd(series)
-                        plot_data[asset] = macd
-                    elif selected_indicator == "Bollinger Bands":
-                        sma, upper, lower = calc_bollinger(series, window=14)
-                        plot_data[asset] = upper - lower
-                    elif selected_indicator == "Rolling Mean (7d)":
-                        plot_data[asset] = calc_rolling_stat(series, window=7, stat="mean")
-                    elif selected_indicator == "Rolling Std (7d)":
-                        plot_data[asset] = calc_rolling_stat(series, window=7, stat="std")
-                    elif selected_indicator == "Rolling Min (7d)":
-                        plot_data[asset] = calc_rolling_stat(series, window=7, stat="min")
-                    elif selected_indicator == "Rolling Max (7d)":
-                        plot_data[asset] = calc_rolling_stat(series, window=7, stat="max")
-                    elif selected_indicator == "Skewness (30d)":
-                        plot_data[asset] = calc_skew(series, window=30)
-                    elif selected_indicator == "Kurtosis (30d)":
-                        plot_data[asset] = calc_kurt(series, window=30)
-                    elif selected_indicator == "VaR (5%, 30d)":
-                        plot_data[asset] = calc_var(series, quantile=0.05, window=30)
-                    elif selected_indicator == "Price/ATH":
-                        plot_data[asset] = price_to_ath(series, meme_ath_map[asset])
-                    elif selected_indicator == "Price/Volume":
-                        plot_data[asset] = price_to_volume(series, meme_vol_map[asset])
-                    elif selected_indicator == "Stochastic Oscillator (14d)":
-                        plot_data[asset] = calc_stochastic_oscillator(series, window=14)
-                    elif selected_indicator == "Williams %R (14d)":
-                        plot_data[asset] = calc_williams_r(series, window=14)
-                    elif selected_indicator == "On-Balance Volume (OBV)":
-                        # For demo, use synthetic volume
-                        plot_data[asset] = calc_obv(series, pd.Series(np.random.randint(1000, 2000, len(series)), index=series.index))
-                    elif selected_indicator == "CCI (20d)":
-                        plot_data[asset] = calc_cci(series, window=20)
-                    elif selected_indicator == "ADX (14d)":
-                        plot_data[asset] = calc_adx(series, series, series, window=14)
-            elif asset in large_names:
-                coin_id = large_id_map[asset]
-                hist_df = fetch_coin_history(coin_id, days=90)
-                if hist_df is not None:
-                    series = hist_df.set_index("date")["price"]
-                    # Same indicator logic as above
-                    # (For brevity, you can refactor this logic into a helper function)
-                    plot_data[asset] = series
-            elif asset in index_names:
-                if asset == "VIX (Volatility Index)":
-                    series = fetch_vix_history_aligned(days=90)
-                else:
-                    series = fetch_sp500_history_aligned(days=90)
-                if series is not None:
-                    plot_data[asset] = series
+                elif asset in index_names:
+                    if asset == "VIX (Volatility Index)":
+                        series = fetch_vix_history_aligned(days=90)
+                    else:
+                        series = fetch_sp500_history_aligned(days=90)
+                    if series is not None:
+                        plot_data[asset] = series
 
-        if plot_data:
-            df_plot = pd.DataFrame(plot_data)
-            if chart_type == "Line":
-                st.line_chart(df_plot)
-            elif chart_type == "Bar":
-                st.bar_chart(df_plot)
-            elif chart_type == "Heatmap":
-                import plotly.graph_objs as go
-                st.plotly_chart(go.Figure(data=go.Heatmap(
-                    z=df_plot.fillna(0).values.T, x=df_plot.index, y=df_plot.columns,
-                    colorscale="RdBu", zmin=df_plot.min().min(), zmax=df_plot.max().max(), colorbar=dict(title=selected_indicator)
-                )), use_container_width=True)
-        else:
-            st.warning("No data available for selected assets.")
+            if plot_data:
+                df_plot = pd.DataFrame(plot_data)
+                if chart_type == "Line":
+                    st.line_chart(df_plot)
+                elif chart_type == "Bar":
+                    st.bar_chart(df_plot)
+                elif chart_type == "Heatmap":
+                    import plotly.graph_objs as go
+                    st.plotly_chart(go.Figure(data=go.Heatmap(
+                        z=df_plot.fillna(0).values.T, x=df_plot.index, y=df_plot.columns,
+                        colorscale="RdBu", zmin=df_plot.min().min(), zmax=df_plot.max().max(), colorbar=dict(title=selected_indicator)
+                    )), use_container_width=True)
+            else:
+                st.warning("No data available for selected assets.")
 
 elif page == "Large Cap Crypto Stonks":
     # --- Large Cap Cryptocurrencies Section ---
