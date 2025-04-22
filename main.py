@@ -132,25 +132,6 @@ def fetch_live_meme_coins(per_page=50):
         console.print(f"[red]Failed to fetch meme coin feed: {e}[/red]")
         return []
 
-def fetch_coin_history(coin_id, days=30, vs_currency="usd"): 
-    """Fetch historical price and volume for a coin from CoinGecko."""
-    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-    params = {"vs_currency": vs_currency, "days": days, "interval": "daily"}
-    try:
-        resp = requests.get(url, params=params, timeout=10)
-        data = resp.json()
-        prices = data.get("prices", [])
-        volumes = data.get("total_volumes", [])
-        df = pd.DataFrame({
-            "date": [pd.to_datetime(p[0], unit="ms") for p in prices],
-            "price": [p[1] for p in prices],
-            "volume": [v[1] for v in volumes]
-        })
-        return df
-    except Exception as e:
-        console.print(f"[red]Failed to fetch history for {coin_id}: {e}[/red]")
-        return None
-
 def fetch_large_cap_coins(limit=15):
     """Fetch top large cap cryptocurrencies from CoinGecko."""
     url = "https://api.coingecko.com/api/v3/coins/markets"
@@ -184,6 +165,41 @@ def fetch_large_cap_coins(limit=15):
         console.print(f"[red]Failed to fetch large cap coins: {e}[/red]")
         return []
 
+# === SHARED DATA & ANALYTICS UTILITIES ===
+# All modules should use these to ensure consistent data and logic across the app.
+
+# --- Data Fetching ---
+def fetch_coin_history(coin_id, days=30, vs_currency="usd"): 
+    """Fetch historical price and volume for a coin from CoinGecko.
+    Returns a DataFrame with columns: date, price, volume.
+    Used by: CorrelationTools, Backtesting, AdvancedCharts, VolumeLiquidity, etc.
+    """
+    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
+    params = {"vs_currency": vs_currency, "days": days, "interval": "daily"}
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+        prices = data.get("prices", [])
+        volumes = data.get("total_volumes", [])
+        df = pd.DataFrame({
+            "date": [pd.to_datetime(p[0], unit="ms") for p in prices],
+            "price": [p[1] for p in prices],
+            "volume": [v[1] for v in volumes]
+        })
+        return df
+    except Exception as e:
+        console.print(f"[red]Failed to fetch history for {coin_id}: {e}[/red]")
+        return None
+
+# --- Correlation Matrix ---
+def compute_correlation_matrix(price_dict):
+    """
+    Given a dict {name: price_series}, compute the correlation matrix DataFrame.
+    Used by: CorrelationTools, Backtesting, portfolio analytics, etc.
+    """
+    df = pd.DataFrame(price_dict)
+    return df.corr()
+
 def align_and_normalize_series(series_dict):
     """Given {name: pd.Series}, align on date and normalize to 1 at start."""
     df = pd.DataFrame(series_dict)
@@ -198,13 +214,6 @@ def moving_average(series, window=7, kind="sma"):
     if kind == "ema":
         return series.ewm(span=window, adjust=False).mean()
     return series.rolling(window=window).mean()
-
-def compute_correlation_matrix(price_dict):
-    """
-    Given a dict {name: price_series}, compute the correlation matrix DataFrame.
-    """
-    df = pd.DataFrame(price_dict)
-    return df.corr()
 
 def prompt_factors(coin_name=None, prefill=None):
     if prefill is None:

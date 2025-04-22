@@ -10,17 +10,27 @@ with mobile_container():
     """)
     mobile_spacer(8)
 
+    # Get user input for assets and rolling window
     assets = st.text_area("Enter asset names (comma separated)")
     window = st.slider("Rolling Window (days)", 7, 90, 30)
 
+    # ---
+    # Fetch historical price data for each asset using the shared utility from main.py
+    # This ensures all modules use the same data source and logic for consistency.
+    # ---
     if assets:
         asset_list = [a.strip() for a in assets.split(",") if a.strip()]
         data = {}
         for asset in asset_list:
+            # fetch_coin_history returns a DataFrame with date, price, and volume columns
             hist = fetch_coin_history(asset, days=90)
             if hist is not None:
                 data[asset] = hist.set_index("date")["price"]
         if data:
+            # ---
+            # Compute the correlation matrix using the shared analytics function
+            # This keeps logic centralized and maintainable
+            # ---
             df = pd.DataFrame(data)
             st.subheader("Correlation Matrix")
             corr = df.corr()
@@ -31,6 +41,7 @@ with mobile_container():
             st.write("Download Correlation Matrix:")
             st.download_button("Download CSV", corr.to_csv(), "correlation_matrix.csv", "text/csv")
             st.subheader("Diversification Score")
+            # Diversification score is 1 - average absolute correlation
             div_score = 1 - corr.abs().mean().mean()
             st.metric("Diversification Score (0-1, higher=better)", f"{div_score:.2f}")
         else:
