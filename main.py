@@ -418,6 +418,50 @@ def calc_kurt(series, window=30):
 def calc_var(series, quantile=0.05, window=30):
     return series.pct_change().rolling(window).apply(lambda x: np.percentile(x, 100*quantile), raw=False)
 
+def calc_stochastic_oscillator(series, window=14):
+    low_min = series.rolling(window=window).min()
+    high_max = series.rolling(window=window).max()
+    return 100 * (series - low_min) / (high_max - low_min)
+
+def calc_williams_r(series, window=14):
+    high_max = series.rolling(window=window).max()
+    low_min = series.rolling(window=window).min()
+    return -100 * (high_max - series) / (high_max - low_min)
+
+def calc_obv(price_series, volume_series):
+    obv = [0]
+    for i in range(1, len(price_series)):
+        if price_series.iloc[i] > price_series.iloc[i-1]:
+            obv.append(obv[-1] + volume_series.iloc[i])
+        elif price_series.iloc[i] < price_series.iloc[i-1]:
+            obv.append(obv[-1] - volume_series.iloc[i])
+        else:
+            obv.append(obv[-1])
+    return pd.Series(obv, index=price_series.index)
+
+def calc_cci(series, window=20):
+    sma = series.rolling(window=window).mean()
+    mad = series.rolling(window=window).apply(lambda x: np.mean(np.abs(x - np.mean(x))), raw=True)
+    cci = (series - sma) / (0.015 * mad)
+    return cci
+
+def calc_adx(high, low, close, window=14):
+    # Calculate the Average Directional Index (ADX)
+    plus_dm = high.diff()
+    minus_dm = low.diff()
+    plus_dm[plus_dm < 0] = 0
+    minus_dm[minus_dm > 0] = 0
+    tr1 = high - low
+    tr2 = abs(high - close.shift())
+    tr3 = abs(low - close.shift())
+    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+    atr = tr.rolling(window=window).mean()
+    plus_di = 100 * (plus_dm.rolling(window=window).sum() / atr)
+    minus_di = abs(100 * (minus_dm.rolling(window=window).sum() / atr))
+    dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
+    adx = dx.rolling(window=window).mean()
+    return adx
+
 # Custom ratios
 def price_to_ath(series, ath):
     return series / ath
