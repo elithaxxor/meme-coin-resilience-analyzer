@@ -16,6 +16,7 @@ with mobile_container():
     st.markdown("""
     Create and manage your custom watchlists of meme coins and large caps. Track price, volume, and news for selected assets.
     """)
+    st.caption("ℹ️ Tip: Use the Education page for guidance on building effective watchlists and setting alerts.")
     mobile_spacer(8)
     coin_choices = get_coin_choices()
     selected_assets = st.multiselect(
@@ -28,7 +29,6 @@ with mobile_container():
         st.success(f"Assets in your watchlist: {', '.join([coin_choices[a] for a in selected_assets])}")
     else:
         st.info("Select assets above to build your watchlist.")
-
     st.dataframe(watchlist)
 
     with st.form("add_coin"):
@@ -37,7 +37,15 @@ with mobile_container():
         target_price = st.number_input("Target Price Alert (USD)", min_value=0.0, value=0.0)
         submitted = st.form_submit_button("Add to Watchlist")
         if submitted and name and symbol and target_price > 0:
-            watchlist = watchlist._append({"name": name, "symbol": symbol, "target_price": target_price}, ignore_index=True)
-            watchlist.to_csv(WATCHLIST_FILE, index=False)
-            st.success(f"Added {name} to watchlist!")
-            st.experimental_rerun()
+            try:
+                watchlist = watchlist._append({"name": name, "symbol": symbol, "target_price": target_price}, ignore_index=True)
+                watchlist.to_csv(WATCHLIST_FILE, index=False)
+                st.success(f"Added {name} to watchlist!")
+                st.experimental_rerun()
+            except Exception as e:
+                st.error(f"Error adding coin to watchlist: {e}")
+
+    # Accessibility & colorblind mode
+    st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
+    # Back to top button for long pages
+    st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

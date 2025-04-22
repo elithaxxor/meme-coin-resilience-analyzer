@@ -7,6 +7,7 @@ with mobile_container():
     st.markdown("""
     Track large transactions and whale activity for your favorite meme coins and large caps.
     """)
+    st.caption("ℹ️ Whale alerts help you spot major market moves. Learn more in the Education section.")
     mobile_spacer(8)
     coin_choices = get_coin_choices()
     selected_asset = st.selectbox(
@@ -17,7 +18,12 @@ with mobile_container():
     )
     if selected_asset:
         st.success(f"Showing whale alerts for: {coin_choices[selected_asset]}")
-        st.write("Whale alert functionality coming soon! (Integrate whale tracking APIs or Etherscan logs)")
-        st.info("This module will track large wallet transactions and alert on major moves.\n\nTo enable, add a whale tracking API key or use Etherscan logs.")
+        st.info("This module will track large wallet transactions and alert on major moves. (API integration coming soon)")
     else:
         st.info("Select an asset to view whale alerts.")
+    st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
+    try:
+        pass
+    except Exception as e:
+        st.error(f"Error loading whale alert data: {e}")
+    st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

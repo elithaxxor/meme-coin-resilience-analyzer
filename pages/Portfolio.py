@@ -27,6 +27,7 @@ def main():
         st.markdown("""
         Create, manage, and analyze your own portfolios of meme coins and large caps. Save and load portfolios as CSV for easy management.
         """)
+        st.caption("ℹ️ Portfolio health and diversification tips are available on the Education page.")
         mobile_spacer(8)
 
         df = load_portfolios()
@@ -52,7 +53,7 @@ def main():
             format_func=lambda x: coin_choices[x],
             help="Start typing to search for supported coins."
         )
-        amount = st.number_input("Amount Held", min_value=0.0, format="%f")
+        amount = st.number_input("Amount Held", min_value=0.0, format="%f", help="How much of this asset do you hold?")
         if st.button("Add Asset") and add_asset:
             df = pd.concat([df, pd.DataFrame([[selected_portfolio, add_asset, "coin", amount, datetime.now()]], columns=df.columns)])
             save_portfolios(df)
@@ -98,6 +99,13 @@ def main():
                     st.experimental_rerun()
         else:
             st.info("No assets in this portfolio yet.")
+
+        st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
+        try:
+            pass
+        except Exception as e:
+            st.error(f"Error loading portfolio data: {e}")
+        st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

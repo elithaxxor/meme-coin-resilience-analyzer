@@ -37,12 +37,15 @@ with mobile_container():
         sigma = st.number_input("Volatility (sigma, decimal)", min_value=0.0, value=0.5, help="Annualized volatility of the underlying asset. E.g., 0.7 for 70%.")
         option_type = st.selectbox("Option Type", ["call", "put"], help="Call = right to buy, Put = right to sell.")
         if st.button("Calculate Black-Scholes Price", help="Compute the theoretical option price using Black-Scholes model."):
-            price = black_scholes_price(S, K, T, r, sigma, option_type)
-            st.success(f"Black-Scholes {option_type.capitalize()} Price: {price:.4f}")
-            greeks = black_scholes_greeks(S, K, T, r, sigma, option_type)
-            st.subheader("Greeks")
-            st.write({k: f"{v:.4f}" for k, v in greeks.items()})
-            st.caption("Greeks measure sensitivity to market changes. See the [Education page](/Education) for full definitions.")
+            try:
+                price = black_scholes_price(S, K, T, r, sigma, option_type)
+                st.success(f"Black-Scholes {option_type.capitalize()} Price: {price:.4f}")
+                greeks = black_scholes_greeks(S, K, T, r, sigma, option_type)
+                st.subheader("Greeks")
+                st.write({k: f"{v:.4f}" for k, v in greeks.items()})
+                st.caption("Greeks measure sensitivity to market changes. See the [Education page](/Education) for full definitions.")
+            except Exception as e:
+                st.error(f"Error calculating Black-Scholes price: {e}")
         st.markdown("---")
         st.subheader("Quick Reference: Black-Scholes Formula")
         st.caption("The Black-Scholes model gives the theoretical price of European options. Inputs: Spot, Strike, Time to Expiry, Risk-Free Rate, Volatility. See the Education page for a step-by-step example and interpretation.")
@@ -129,8 +132,11 @@ with mobile_container():
         steps = st.slider("Tree Steps", 10, 200, 50, help="Number of steps in the binomial tree.")
         option_type = st.selectbox("Option Type", ["call", "put"], key="bin_type", help="Call = right to buy, Put = right to sell.")
         if st.button("Calculate Binomial Tree Price", help="Compute the theoretical option price using binomial tree model."):
-            price = binomial_tree_price(S, K, T, r, sigma, steps, option_type)
-            st.success(f"Binomial Tree {option_type.capitalize()} Price: {price:.4f}")
+            try:
+                price = binomial_tree_price(S, K, T, r, sigma, steps, option_type)
+                st.success(f"Binomial Tree {option_type.capitalize()} Price: {price:.4f}")
+            except Exception as e:
+                st.error(f"Error calculating binomial tree price: {e}")
         # --- Visualization: Price vs Underlying ---
         st.subheader("Scenario: Option Price vs Spot Price (Binomial)")
         st.caption("Explore how price changes as the underlying asset moves.")
@@ -157,8 +163,11 @@ with mobile_container():
         n_sim = st.number_input("Simulations", min_value=100, max_value=100000, value=10000, step=100, help="Number of simulations for Monte Carlo pricing.")
         option_type = st.selectbox("Option Type", ["call", "put"], key="mc_type", help="Call = right to buy, Put = right to sell.")
         if st.button("Run Monte Carlo Simulation", help="Compute the theoretical option price using Monte Carlo simulation."):
-            price = monte_carlo_option_price(S, K, T, r, sigma, int(n_sim), option_type)
-            st.success(f"Monte Carlo {option_type.capitalize()} Price: {price:.4f}")
+            try:
+                price = monte_carlo_option_price(S, K, T, r, sigma, int(n_sim), option_type)
+                st.success(f"Monte Carlo {option_type.capitalize()} Price: {price:.4f}")
+            except Exception as e:
+                st.error(f"Error running Monte Carlo simulation: {e}")
         # --- Visualization: Price Distribution ---
         st.subheader("Scenario: Simulated Payoff Distribution")
         st.caption("Explore the distribution of simulated payoffs.")
@@ -184,8 +193,11 @@ with mobile_container():
         win_prob = st.number_input("Win Probability (0-1)", min_value=0.0, max_value=1.0, value=0.55, help="Probability of winning the trade.")
         win_loss_ratio = st.number_input("Win/Loss Ratio", min_value=0.01, value=2.0, help="Ratio of win to loss.")
         if st.button("Calculate Kelly Fraction", help="Compute the optimal fraction of capital to risk using Kelly criterion."):
-            fraction = kelly_criterion(win_prob, win_loss_ratio)
-            st.success(f"Optimal Fraction of Capital to Risk: {fraction:.4f}")
+            try:
+                fraction = kelly_criterion(win_prob, win_loss_ratio)
+                st.success(f"Optimal Fraction of Capital to Risk: {fraction:.4f}")
+            except Exception as e:
+                st.error(f"Error calculating Kelly fraction: {e}")
         # --- Scenario: Kelly Fraction vs Win Probability ---
         st.subheader("Scenario: Kelly Fraction vs Win Probability")
         st.caption("Explore how the optimal fraction changes as the win probability changes.")
@@ -206,5 +218,11 @@ with mobile_container():
     st.markdown("""
     <style>
     .stCaption { color: #6c757d; font-size: 0.95em; }
+    .stDataFrame th, .stDataFrame td { font-size: 1.1em; }
     </style>
     """, unsafe_allow_html=True)
+    try:
+        pass
+    except Exception as e:
+        st.error(f"Error loading derivatives data: {e}")
+    st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

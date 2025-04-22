@@ -10,6 +10,7 @@ with mobile_container():
     st.markdown("""
     Discover which meme coins and large caps are trending now, based on price, volume, and social activity.
     """)
+    st.caption("ℹ️ Trending scores reflect real-time social and trading activity. Use the [Education page](/Education) for more on how to interpret these metrics.")
     mobile_spacer(8)
     coin_choices = get_coin_choices()
     selected_assets = st.multiselect(
@@ -33,19 +34,18 @@ with mobile_container():
                 return [c["item"] for c in coins]
             return []
 
-        trending_coins = fetch_trending_coins()
-        if trending_coins:
-            df = pd.DataFrame(trending_coins)
-            st.dataframe(df[["name", "symbol", "market_cap_rank", "score"]], use_container_width=True, hide_index=True)
-            st.bar_chart(df.set_index("name")["score"], use_container_width=True)
-            st.caption("Trending scores reflect real-time social and trading activity. Use the [Education page](/Education) for more on how to interpret these metrics.")
-            st.markdown("""
-            <style>
-            .stDataFrame th, .stDataFrame td { font-size: 1.1em; padding: 0.5em; }
-            .stCaption { color: #6c757d; font-size: 0.95em; }
-            </style>
-            """, unsafe_allow_html=True)
-        else:
-            st.warning("No trending coins found or API limit reached.")
+        try:
+            trending_coins = fetch_trending_coins()
+            if trending_coins:
+                df = pd.DataFrame(trending_coins)
+                st.dataframe(df[["name", "symbol", "market_cap_rank", "score"]], use_container_width=True, hide_index=True)
+                st.bar_chart(df.set_index("name")["score"], use_container_width=True)
+                st.caption("Trending scores reflect real-time social and trading activity. Use the [Education page](/Education) for more on how to interpret these metrics.")
+            else:
+                st.warning("No trending coins found or API limit reached.")
+        except Exception as e:
+            st.error(f"Error loading trending data: {e}")
     else:
         st.info("Select assets above to compare trends.")
+    st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; padding: 0.5em; } .stCaption { color: #6c757d; font-size: 0.95em; } </style>", unsafe_allow_html=True)
+    st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

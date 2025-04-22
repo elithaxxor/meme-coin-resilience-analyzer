@@ -7,6 +7,10 @@ from utils.ui import mobile_container, mobile_spacer
 with mobile_container():
     st.title("Volume & Liquidity Analytics")
     st.write("Spot meme coins with unusual volume or liquidity spikes.")
+    st.markdown("""
+    Visualize and compare trading volume and liquidity for meme coins and large caps. Identify thinly traded or high-liquidity assets.
+    """)
+    st.caption("ℹ️ See Education for tips on interpreting volume and liquidity charts.")
     mobile_spacer(8)
     @st.cache_data(ttl=120)
     def fetch_top_volume_meme_coins():
@@ -27,15 +31,14 @@ with mobile_container():
 
     data = fetch_top_volume_meme_coins()
     if data:
-        df = pd.DataFrame(data)
-        st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]], use_container_width=True, hide_index=True)
-        st.line_chart(df.set_index("name")["total_volume"], use_container_width=True)
-        st.caption("Tip: Tap column headers to sort. Scroll horizontally for more data. Charts are interactive on mobile and desktop.")
-        st.markdown("""
-        <style>
-        .stDataFrame th, .stDataFrame td { font-size: 1.1em; padding: 0.5em; }
-        .stCaption { color: #6c757d; font-size: 0.95em; }
-        </style>
-        """, unsafe_allow_html=True)
+        try:
+            df = pd.DataFrame(data)
+            st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]], use_container_width=True, hide_index=True)
+            st.line_chart(df.set_index("name")["total_volume"], use_container_width=True)
+            st.caption("Tip: Tap column headers to sort. Scroll horizontally for more data. Charts are interactive on mobile and desktop.")
+        except Exception as e:
+            st.error(f"Error rendering volume/liquidity data: {e}")
     else:
         st.warning("No data found or API limit reached.")
+    st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
+    st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)
