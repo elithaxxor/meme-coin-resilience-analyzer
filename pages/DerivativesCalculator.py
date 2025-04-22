@@ -2,6 +2,7 @@ import streamlit as st
 from main import black_scholes_price, binomial_tree_price, kelly_criterion, monte_carlo_option_price, black_scholes_greeks
 import plotly.graph_objs as go
 import plotly.express as px
+from utils.coin_utils import get_coin_choices
 from utils.ui import mobile_container, mobile_spacer
 from io import BytesIO
 import base64
@@ -14,6 +15,13 @@ with mobile_container():
     """)
     st.caption("ℹ️ All results are for educational purposes. See the [Education page](/Education) for model explanations and scenario guides.")
     mobile_spacer(8)
+    coin_choices = get_coin_choices()
+    asset = st.selectbox(
+        "Select Underlying Asset (autocomplete)",
+        options=list(coin_choices.keys()),
+        format_func=lambda x: coin_choices[x],
+        help="Start typing to search for supported coins."
+    )
     model = st.selectbox("Choose Model", [
         "Black-Scholes (European Option)",
         "Binomial Tree (American Option)",

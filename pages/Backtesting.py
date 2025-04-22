@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from main import fetch_coin_history, calc_returns, moving_average, calc_rsi
+from utils.coin_utils import get_coin_choices, get_price_history
 from utils.ui import mobile_container, mobile_spacer
+from main import calc_returns, moving_average, calc_rsi
 
 with mobile_container():
     st.title("Backtesting & Strategy Simulation")
@@ -11,12 +12,19 @@ with mobile_container():
     mobile_spacer(8)
 
     strategy = st.selectbox("Select Strategy", ["SMA Crossover", "RSI Overbought/Oversold"])
-    asset = st.text_input("Coin Name (as in app)")
+    coin_choices = get_coin_choices()
+    asset = st.selectbox(
+        "Select Asset (autocomplete)",
+        options=list(coin_choices.keys()),
+        format_func=lambda x: coin_choices[x],
+        help="Start typing to search for supported coins."
+    )
     days = st.slider("Backtest Days", 30, 365, 90)
 
     if asset:
-        hist = fetch_coin_history(asset, days=days)
-        if hist is not None:
+        with st.spinner("Fetching price history..."):
+            hist = get_price_history(asset, days=days)
+        if hist is not None and not hist.empty:
             price = hist.set_index("date")["price"]
             st.line_chart(price)
             if strategy == "SMA Crossover":
@@ -45,6 +53,6 @@ with mobile_container():
                 strat_returns = returns * (buy_signals.shift(1).fillna(0) > 0)
                 st.write("Backtested Return:", strat_returns.sum())
         else:
-            st.warning("No price history found for this asset.")
+            st.warning(f"No data found for: {coin_choices[asset]}")
     else:
-        st.info("Enter a coin name to begin.")
+        st.info("Select an asset to backtest.")

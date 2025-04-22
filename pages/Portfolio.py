@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime
 from main import fetch_coin_history, fetch_large_cap_coins, fetch_live_meme_coins
+from utils.coin_utils import get_coin_choices
 from utils.ui import mobile_container, mobile_spacer
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
@@ -19,13 +20,6 @@ def load_portfolios():
 
 def save_portfolios(df):
     df.to_csv(PORTFOLIO_CSV, index=False)
-
-def get_all_assets():
-    meme_coins = fetch_live_meme_coins()
-    large_caps = fetch_large_cap_coins()
-    meme_names = [c['name'] for c in meme_coins]
-    large_names = [c['name'] for c in large_caps]
-    return meme_names + large_names
 
 def main():
     with mobile_container():
@@ -51,8 +45,13 @@ def main():
             st.stop()
 
         st.subheader(f"Manage Portfolio: {selected_portfolio}")
-        assets = get_all_assets()
-        add_asset = st.selectbox("Add Asset", [a for a in assets if a not in df[df['portfolio'] == selected_portfolio]['asset'].tolist()])
+        coin_choices = get_coin_choices()
+        add_asset = st.selectbox(
+            "Add Asset (autocomplete)",
+            options=list(coin_choices.keys()),
+            format_func=lambda x: coin_choices[x],
+            help="Start typing to search for supported coins."
+        )
         amount = st.number_input("Amount Held", min_value=0.0, format="%f")
         if st.button("Add Asset") and add_asset:
             df = pd.concat([df, pd.DataFrame([[selected_portfolio, add_asset, "coin", amount, datetime.now()]], columns=df.columns)])

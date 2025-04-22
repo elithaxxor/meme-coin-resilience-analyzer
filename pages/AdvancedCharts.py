@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
-from main import fetch_coin_history
+from utils.coin_utils import get_coin_choices, get_price_history
 from utils.ui import mobile_container, mobile_spacer
 
 with mobile_container():
@@ -10,13 +10,20 @@ with mobile_container():
     Explore advanced charting: candlestick, scatter, radar/spider charts, and multi-axis plots for deep technical analysis.
     """)
     mobile_spacer(8)
-    asset = st.text_input("Coin Name (as in app)")
+    coin_choices = get_coin_choices()
+    asset = st.selectbox(
+        "Select Asset (autocomplete)",
+        options=list(coin_choices.keys()),
+        format_func=lambda x: coin_choices[x],
+        help="Start typing to search for supported coins."
+    )
     days = st.slider("Days of History", 30, 365, 90)
     chart_type = st.selectbox("Chart Type", ["Candlestick", "Scatter", "Radar/Spider", "Price vs Volume"])
 
     if asset:
-        hist = fetch_coin_history(asset, days=days)
-        if hist is not None:
+        with st.spinner("Fetching price history..."):
+            hist = get_price_history(asset, days=days)
+        if hist is not None and not hist.empty:
             df = hist.set_index("date")
             if chart_type == "Candlestick":
                 # For demo, use price as open/high/low/close
@@ -37,6 +44,6 @@ with mobile_container():
                 fig.update_layout(yaxis2=dict(overlaying='y', side='right', title='Volume'), yaxis=dict(title='Price'))
                 st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("No price history found for this asset.")
+            st.warning(f"No data found for: {coin_choices[asset]}")
     else:
-        st.info("Enter a coin name to begin.")
+        st.info("Select an asset to view charts.")
