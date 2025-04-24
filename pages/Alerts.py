@@ -21,25 +21,29 @@ with mobile_container():
     def save_alerts(df):
         df.to_csv(ALERTS_CSV, index=False)
 
-    df = load_alerts()
+    try:
+        df = load_alerts()
 
-    asset = st.text_input("Asset Name (as in app)")
-    alert_type = st.selectbox("Alert Type", ["Price", "Volume", "Indicator"])
-    direction = st.selectbox("Direction", [">", "<"])
-    threshold = st.number_input("Threshold Value", min_value=0.0, format="%f")
+        asset = st.text_input("Asset Name (as in app)")
+        alert_type = st.selectbox("Alert Type", ["Price", "Volume", "Indicator"])
+        direction = st.selectbox("Direction", [">", "<"])
+        threshold = st.number_input("Threshold Value", min_value=0.0, format="%f")
 
-    if st.button("Add Alert") and asset:
-        df = pd.concat([df, pd.DataFrame([[asset, alert_type, threshold, direction, pd.Timestamp.now()]], columns=df.columns)])
-        save_alerts(df)
-        st.success("Alert added!")
-
-    if not df.empty:
-        st.subheader("Current Alerts")
-        st.dataframe(df)
-        remove_idx = st.selectbox("Remove Alert (row index)", df.index.tolist())
-        if st.button("Remove Selected Alert"):
-            df = df.drop(remove_idx)
+        if st.button("Add Alert") and asset:
+            df = pd.concat([df, pd.DataFrame([[asset, alert_type, threshold, direction, pd.Timestamp.now()]], columns=df.columns)])
             save_alerts(df)
-            st.experimental_rerun()
+            st.success("Alert added!")
 
-    st.info("Email/Telegram notifications require API key setup. See documentation for details.")
+        if not df.empty:
+            st.subheader("Current Alerts")
+            st.dataframe(df)
+            remove_idx = st.selectbox("Remove Alert (row index)", df.index.tolist())
+            if st.button("Remove Selected Alert"):
+                df = df.drop(remove_idx)
+                save_alerts(df)
+                st.experimental_rerun()
+
+        st.info("Email/Telegram notifications require API key setup. See documentation for details.")
+    except Exception as e:
+        st.error(f"Error loading alerts: {e}")
+        st.info("Please check your internet connection, data files, or try again later. If the issue persists, contact support.")

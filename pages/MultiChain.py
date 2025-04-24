@@ -25,11 +25,15 @@ def fetch_top_meme_coins(chain):
         return resp.json()
     return []
 
-chain = st.selectbox("Select Chain", SUPPORTED_CHAINS)
-coins = fetch_top_meme_coins(chain)
+try:
+    chain = st.selectbox("Select Chain", SUPPORTED_CHAINS)
+    coins = fetch_top_meme_coins(chain)
 
-if coins:
-    df = pd.DataFrame(coins)
-    st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]])
-else:
-    st.warning("No meme coins found for this chain or API limit reached.")
+    if coins:
+        df = pd.DataFrame(coins)
+        st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]])
+    else:
+        st.warning("No meme coins found for this chain or API limit reached.")
+except Exception as e:
+    st.error(f"Error loading multi-chain analytics: {e}")
+    st.info("Please check your internet connection, data sources, or try again later. If the issue persists, contact support.")

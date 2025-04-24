@@ -43,9 +43,12 @@ with mobile_container():
                 st.caption("Trending scores reflect real-time social and trading activity. Use the [Education page](/Education) for more on how to interpret these metrics.")
             else:
                 st.warning("No trending coins found or API limit reached.")
+                st.info("Please check the CoinGecko API status or try again later. Data may be limited due to API restrictions.")
         except Exception as e:
-            st.error(f"Error loading trending data: {e}")
+            st.error(f"Error loading trending coins: {e}")
+            st.info("Please check your internet connection, data sources, or try again later. If the issue persists, contact support.")
     else:
         st.info("Select assets above to compare trends.")
+        st.caption("Tip: Use the asset selector above to compare coins. Data may be delayed if APIs are rate-limited.")
     st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; padding: 0.5em; } .stCaption { color: #6c757d; font-size: 0.95em; } </style>", unsafe_allow_html=True)
     st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

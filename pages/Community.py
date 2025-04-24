@@ -22,22 +22,25 @@ def save_votes(df):
     df.to_csv(VOTES_CSV, index=False)
 
 from main import fetch_live_meme_coins
-meme_coins = fetch_live_meme_coins()
-coin_options = [c['name'] for c in meme_coins]
 
-user = st.text_input("Your Username (for leaderboard)")
-selected_coin = st.selectbox("Vote for a Meme Coin", coin_options)
-
-if st.button("Vote") and user and selected_coin:
+try:
+    meme_coins = fetch_live_meme_coins()
+    coin_options = [c['name'] for c in meme_coins]
+    user = st.text_input("Your Username (for leaderboard)")
+    selected_coin = st.selectbox("Vote for a Meme Coin", coin_options)
+    if st.button("Vote") and user and selected_coin:
+        df = load_votes()
+        df = pd.concat([df, pd.DataFrame([[selected_coin, user, 1, pd.Timestamp.now()]], columns=df.columns)])
+        save_votes(df)
+        st.success("Vote submitted!")
+    st.subheader("Live Leaderboard (Most Voted)")
     df = load_votes()
-    df = pd.concat([df, pd.DataFrame([[selected_coin, user, 1, pd.Timestamp.now()]], columns=df.columns)])
-    save_votes(df)
-    st.success("Vote submitted!")
-
-st.subheader("Live Leaderboard (Most Voted)")
-df = load_votes()
-if not df.empty:
-    leaderboard = df.groupby('coin').vote.sum().sort_values(ascending=False).reset_index()
-    st.dataframe(leaderboard)
-else:
-    st.info("No votes yet.")
+    if not df.empty:
+        leaderboard = df.groupby('coin').vote.sum().sort_values(ascending=False).reset_index()
+        st.dataframe(leaderboard)
+    else:
+        st.info("No votes yet.")
+except Exception as e:
+    st.error(f"Error loading community data: {e}")
+    st.info("Please check your internet connection, data sources, or try again later. If the issue persists, contact support.")
+st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

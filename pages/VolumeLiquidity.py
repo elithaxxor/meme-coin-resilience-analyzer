@@ -29,16 +29,18 @@ with mobile_container():
             return resp.json()
         return []
 
-    data = fetch_top_volume_meme_coins()
-    if data:
-        try:
+    try:
+        data = fetch_top_volume_meme_coins()
+        if data:
             df = pd.DataFrame(data)
             st.dataframe(df[["name", "symbol", "current_price", "market_cap", "total_volume"]], use_container_width=True, hide_index=True)
             st.line_chart(df.set_index("name")["total_volume"], use_container_width=True)
             st.caption("Tip: Tap column headers to sort. Scroll horizontally for more data. Charts are interactive on mobile and desktop.")
-        except Exception as e:
-            st.error(f"Error rendering volume/liquidity data: {e}")
-    else:
-        st.warning("No data found or API limit reached.")
+        else:
+            st.warning("No data found or API limit reached.")
+            st.caption("If this persists, please try again later or check API status.")
+    except Exception as e:
+        st.error(f"Error loading volume/liquidity analytics: {e}")
+        st.info("Please check your internet connection, data sources, or try again later. If the issue persists, contact support.")
     st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
     st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

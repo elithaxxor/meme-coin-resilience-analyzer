@@ -22,8 +22,8 @@ with mobile_container():
     chart_type = st.selectbox("Chart Type", ["Candlestick", "Scatter", "Radar/Spider", "Price vs Volume"], help="Choose the visualization type.")
 
     if asset:
-        with st.spinner("Fetching price history..."):
-            try:
+        try:
+            with st.spinner("Fetching price history..."):
                 hist = get_price_history(asset, days=days)
                 if hist is not None and not hist.empty:
                     df = hist.set_index("date")
@@ -47,9 +47,11 @@ with mobile_container():
                         st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.warning(f"No data found for: {coin_choices[asset]}")
-            except Exception as e:
-                st.error(f"Error fetching price history: {e}")
+        except Exception as e:
+            st.error(f"Error loading advanced chart data: {e}")
+            st.info("Please check your internet connection, data sources, or try again later. If the issue persists, contact support.")
     else:
         st.info("Select an asset to view charts.")
+        st.caption("Tip: Use the asset selector above to choose a coin. Data may be delayed if APIs are rate-limited.")
     st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
     st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

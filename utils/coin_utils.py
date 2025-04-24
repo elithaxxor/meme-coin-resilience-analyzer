@@ -5,8 +5,8 @@ from main import fetch_live_meme_coins, fetch_large_cap_coins, fetch_coin_histor
 def get_coin_choices():
     """
     Returns a dict of {coin_id: 'Name (SYMBOL)'} for meme coins and large caps.
-    Used for asset selection dropdowns across the app.
-    """
+    Used f r asset selection dropdowns across the app.
+    """ 
     meme_coins = fetch_live_meme_coins(50)
     large_caps = fetch_large_cap_coins(20)
     choices = {c['id']: f"{c['name']} ({c['symbol'].upper()})" for c in meme_coins + large_caps}

@@ -11,29 +11,33 @@ with mobile_container():
 
     address = st.text_input("Enter Token Contract Address (Ethereum)")
     if address:
-        # Example: Use Etherscan API for holder distribution (requires public API key)
-        ETHERSCAN_API_KEY = st.secrets["ETHERSCAN_API_KEY"] if "ETHERSCAN_API_KEY" in st.secrets else ""
-        if ETHERSCAN_API_KEY:
-            url = f"https://api.etherscan.io/api"
-            params = {
-                "module": "token",
-                "action": "tokenholderlist",
-                "contractaddress": address,
-                "apikey": ETHERSCAN_API_KEY
-            }
-            resp = requests.get(url, params=params)
-            if resp.status_code == 200:
-                data = resp.json()
-                holders = data.get("result", [])
-                if holders:
-                    df = pd.DataFrame(holders)
-                    st.dataframe(df)
-                    st.bar_chart(df["balance"].astype(float))
+        try:
+            # Example: Use Etherscan API for holder distribution (requires public API key)
+            ETHERSCAN_API_KEY = st.secrets["ETHERSCAN_API_KEY"] if "ETHERSCAN_API_KEY" in st.secrets else ""
+            if ETHERSCAN_API_KEY:
+                url = f"https://api.etherscan.io/api"
+                params = {
+                    "module": "token",
+                    "action": "tokenholderlist",
+                    "contractaddress": address,
+                    "apikey": ETHERSCAN_API_KEY
+                }
+                resp = requests.get(url, params=params)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    holders = data.get("result", [])
+                    if holders:
+                        df = pd.DataFrame(holders)
+                        st.dataframe(df)
+                        st.bar_chart(df["balance"].astype(float))
+                    else:
+                        st.warning("No holder data found.")
                 else:
-                    st.warning("No holder data found.")
+                    st.error("Failed to fetch data from Etherscan.")
             else:
-                st.error("Failed to fetch data from Etherscan.")
-        else:
-            st.info("Add your ETHERSCAN_API_KEY to Streamlit secrets for live holder analysis.")
+                st.info("Add your ETHERSCAN_API_KEY to Streamlit secrets for live holder analysis.")
+        except Exception as e:
+            st.error(f"Error loading holder distribution: {e}")
+            st.info("Please check your internet connection, API keys, or try again later. If the issue persists, contact support.")
     else:
         st.info("Enter a contract address above to analyze holders.")

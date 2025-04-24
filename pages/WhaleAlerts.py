@@ -16,14 +16,14 @@ with mobile_container():
         format_func=lambda x: coin_choices[x],
         help="Start typing to search for supported coins."
     )
-    if selected_asset:
-        st.success(f"Showing whale alerts for: {coin_choices[selected_asset]}")
-        st.info("This module will track large wallet transactions and alert on major moves. (API integration coming soon)")
-    else:
-        st.info("Select an asset to view whale alerts.")
-    st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
     try:
-        pass
+        if selected_asset:
+            st.success(f"Showing whale alerts for: {coin_choices[selected_asset]}")
+            st.info("This module will track large wallet transactions and alert on major moves. (API integration coming soon)")
+        else:
+            st.info("Select an asset to view whale alerts.")
+        st.markdown("<style>.stDataFrame th, .stDataFrame td { font-size: 1.1em; } .stCaption { color: #6c757d; } </style>", unsafe_allow_html=True)
     except Exception as e:
-        st.error(f"Error loading whale alert data: {e}")
+        st.error(f"Error loading whale alerts: {e}")
+        st.info("Please check your internet connection, API keys, or try again later. If the issue persists, contact support.")
     st.markdown('<a href="#top">Back to Top</a>', unsafe_allow_html=True)

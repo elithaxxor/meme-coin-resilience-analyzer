@@ -42,21 +42,25 @@ with mobile_container():
     selected_symbol = st.selectbox("Select Coin Symbol", coin_options)
 
     if selected_symbol:
-        st.subheader(f"Sentiment for {selected_symbol}")
-        sentiment = get_lunarcrush_sentiment(selected_symbol)
-        if sentiment:
-            st.write({k: v for k, v in sentiment.items() if k in ['alt_rank', 'galaxy_score', 'social_score', 'social_volume', 'price', 'volatility']})
-        else:
-            st.info("No sentiment data available (API key required or coin not tracked).")
+        try:
+            st.subheader(f"Sentiment for {selected_symbol}")
+            sentiment = get_lunarcrush_sentiment(selected_symbol)
+            if sentiment:
+                st.write({k: v for k, v in sentiment.items() if k in ['alt_rank', 'galaxy_score', 'social_score', 'social_volume', 'price', 'volatility']})
+            else:
+                st.info("No sentiment data available (API key required or coin not tracked).")
 
-        st.subheader(f"Latest News for {selected_symbol}")
-        news_items = get_news(selected_symbol)
-        if news_items:
-            for article in news_items:
-                st.markdown(f"**[{article['title']}]({article['url']})**  ")
-                st.caption(f"{article['source']['name']} | {article['publishedAt']}")
-                st.write(article['description'])
-        else:
-            st.info("No news found or API key missing.")
+            st.subheader(f"Latest News for {selected_symbol}")
+            news_items = get_news(selected_symbol)
+            if news_items:
+                for article in news_items:
+                    st.markdown(f"**[{article['title']}]({article['url']})**  ")
+                    st.caption(f"{article['source']['name']} | {article['publishedAt']}")
+                    st.write(article['description'])
+            else:
+                st.info("No news found or API key missing.")
+        except Exception as e:
+            st.error(f"Error loading sentiment news: {e}")
+            st.info("Please check your internet connection, news sources, or try again later. If the issue persists, contact support.")
 
     st.caption("For Telegram/Reddit integration, add your API keys and see docs for setup.")
